@@ -40,18 +40,18 @@ And create an empty pillar/hostmap.sls
 
 2. Put your pillar data in yaml files under /srv/salt/pillar or your configured path (See installation 3.). The pillar files can exist in any number of subdirectories, hierarchy_pillar will find it. The first pillar which is loaded is the pillar file with name <minion_id>.yaml. In it the parent pillar file has to be referenced in keyword '_parent'. Example:
 
-/srv/salt/pillar/hosts/myhost.yaml:
+    /srv/salt/pillar/hosts/myhost.yaml:
     ```
     _parent: myzone
     hostname: myhost
     ```
 
-/srv/salt/pillar/zones/myzone.yaml:
+    /srv/salt/pillar/zones/myzone.yaml:
     ```
     zonename: myzone
     ```
 
-Output:
+    Output:
 
     ```
     hostname: myhost
