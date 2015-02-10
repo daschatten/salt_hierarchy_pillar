@@ -57,3 +57,100 @@ And create an empty pillar/hostmap.sls
     hostname: myhost
     zonename: myzone
     ```
+
+## Merge details
+
+### Merge order
+
+1. Pillar hierarchy for given minion_id is built bottom (host data) up (e.g. zone data) according to given '_parent' keys (or whatever is defined manually). Values in lower levels always takes precedence.
+
+2. Pillar data from earlier running pillar modules is merged in (Pillar hierarchy from 1 takes precedence).
+
+### Merge strategy
+
+A (e.g. host data) is merged with B (e.g. zone data).
+
+* If data type is not the same, e.g. String <-> List then A takes precedence
+    ```
+     A
+    === 
+    key: value
+
+     B
+    === 
+    key: 
+        one: 1
+        two: 2
+    
+    Result:
+    =======
+    key: value
+    ```
+* If data type is list then values in B not present in A are appended to A
+    ```
+     A
+    ===
+    key:
+        - one 
+        - two
+
+     B    
+    === 
+    key:
+        - two
+        - three
+
+    Result:
+    =======
+    key:
+        - one
+        - two
+        - three  
+    ```
+* If data type is dict then values from B not present in A are appended to A
+    ```
+     A
+    ===
+    key:
+        one: 1
+        two: 2
+
+     B
+    ===
+    key:
+        one: 4
+        two: 2
+        three: 3
+
+    Result:
+    =======
+    key:
+        one: 1
+        two: 2
+        three: 3
+    ```
+* If data type is str then A takes precedence
+    ```
+     A
+    ===
+    key: one
+
+     B
+    ===
+    key: two
+
+    Result:
+    =======
+    key: one
+    ```
+
+### Control merge strategy
+
+Merge strategy can be controlled in some ways:
+
+A (e.g. host data) is merged with B (e.g. zone data).
+
+* List:
+    If first element in a list is '_replace' then the list from B will replace list in A
+* Dict:
+   If dict contains a key '_control' with value '_replace_' then dict from B replaces dict in A
