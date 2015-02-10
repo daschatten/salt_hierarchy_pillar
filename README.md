@@ -151,6 +151,6 @@ Merge strategy can be controlled in some ways:
 A (e.g. host data) is merged with B (e.g. zone data).
 
 * List:
-    If first element in a list is `_replace` then the list from B will replace list in A
+    If first element in a list is `_replace` then the list in A is not merged with list in B, A is result.
 * Dict:
-   If dict contains a key `_control` with value `_replace` then dict from B replaces dict in A
+   If dict contains a key `_control` with value `_replace` then dict in A is not merged with dict in B, A is result.
