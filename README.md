@@ -51,7 +51,7 @@ And create an empty pillar/hostmap.sls
     zonename: myzone
     ```
 
-    Output:
+    Output from command "salt 'myhost' pillar.items":
 
     ```
     hostname: myhost
