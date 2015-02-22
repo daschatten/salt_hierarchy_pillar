@@ -25,6 +25,7 @@ or change defaults:
     ext_pillar:
         - hierarchy_pillar:
             'hierarchy_pillar.key': '_parent'
+            'hierarchy_pillar.data_key': '_data'
             'hierarchy_pillar.data_path': '/srv/salt/pillar'
     ```
 
@@ -57,6 +58,35 @@ And create an empty pillar/hostmap.sls
     hostname: myhost
     zonename: myzone
     ```
+
+3. Optional merge in more pillar files with tag '_data'. This must be a list of filenames. Example:
+
+    /srv/salt/pillar/hosts/myhost.yaml:
+    ```
+    _parent: myzone
+    _data:
+      - test
+    hostname: myhost
+    ```
+
+    /srv/salt/pillar/zones/myzone.yaml:
+    ```
+    zonename: myzone
+    ```
+
+    /srv/salt/pillar/data/test.yaml:
+    ```
+    john: doe
+    ```
+
+    Output from command "salt 'myhost' pillar.items":
+
+    ```
+    hostname: myhost
+    zonename: myzone
+    john: doe
+    ```
+
 
 ## Merge details
 
