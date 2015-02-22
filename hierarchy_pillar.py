@@ -108,7 +108,7 @@ def find_file(name, path):
     log.debug('Search file: ' + path + '/' + name)
     for root, dirs, files in os.walk(path):
         if name in files:
-            log.critical('Found file: ' + root + '/' + name)
+            log.debug('Found file: ' + root + '/' + name)
             return os.path.join(root, name)
 
 # Combines pillar data with parents
