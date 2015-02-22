@@ -54,13 +54,13 @@ def process_data_tags(pillar_data):
     if __opts__['hierarchy_pillar.data_key'] in pillar_data:
         log.debug('get_parent: data exists')
 
-    for filename in pillar_data[__opts__['hierarchy_pillar.data_key']]:
-        try:
-            new_data = load_pillar(filename)
-        except Exception as e:
-            log.critical('build_pillar: load_pillar failed')
-            log.critical(e)
-        pillar_data = combine_two(pillar_data, new_data)
+        for filename in pillar_data[__opts__['hierarchy_pillar.data_key']]:
+            try:
+                new_data = load_pillar(filename)
+            except Exception as e:
+                log.critical('build_pillar: load_pillar failed')
+                log.critical(e)
+            pillar_data = combine_two(pillar_data, new_data)
     
     return pillar_data
 
