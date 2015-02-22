@@ -15,6 +15,7 @@ log = logging.getLogger(__name__)
 # Define defaults
 __opts__ = { 
     'hierarchy_pillar.key': '_parent',
+    'hierarchy_pillar.data_key': '_data',
     'hierarchy_pillar.data_path': '/srv/salt/pillar',
 }
 
@@ -39,12 +40,29 @@ def build_pillar(id):
         log.critical(e)
         return {}
 
+    process_data_tags(pillar_data)
+
     parent_id = get_parent(pillar_data)
 
     if parent_id:
         return combine(pillar_data)
     else:
         return pillar_data
+
+# Searches for _data tags and their files and merges them in
+def process_data_tags(pillar_data):
+    if __opts__['hierarchy_pillar.data_key'] in pillar_data:
+        log.debug('get_parent: data exists')
+
+    for filename in pillar_data[__opts__['hierarchy_pillar.data_key']]:
+        try:
+            new_data = load_pillar(filename)
+        except Exception as e:
+            log.critical('build_pillar: load_pillar failed')
+            log.critical(e)
+        pillar_data = combine_two(pillar_data, new_data)
+    
+    return pillar_data
 
 # Returns parent name from given pillar data
 def get_parent(pillar_data):
