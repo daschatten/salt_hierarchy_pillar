@@ -16,6 +16,7 @@ log = logging.getLogger(__name__)
 __opts__ = { 
     'hierarchy_pillar.key': '_parent',
     'hierarchy_pillar.data_key': '_data',
+    'hierarchy_pillar.neighbour_key': '_neighbours',
     'hierarchy_pillar.data_path': '/srv/salt/pillar',
 }
 
@@ -24,7 +25,18 @@ def ext_pillar(id, pillar, data):
     # First, build pillar hierarchy starting with host pillar for id
     result = build_pillar(id)
 
-    # Second, combine generated pillar with given pillar variable
+    # Second, include other given pillars (can also have _data and _neighbour keys) in key <name>.
+    if __opts__['hierarchy_pillar.neighbour_key'] in result:
+        log.debug('get_parent: neighbour exists')
+
+        for filename in result[__opts__['hierarchy_pillar.neighbour_key']]:
+            # check if we have a recursion problem
+            if filename == id:
+                next
+            result[filename] = build_pillar(filename)
+
+
+    # Third, combine generated pillar with given pillar variable
     # First built pillar takes precedence
     result = combine_two(result, pillar)
 
