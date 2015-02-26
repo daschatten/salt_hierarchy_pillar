@@ -26,6 +26,7 @@ or change defaults:
         - hierarchy_pillar:
             'hierarchy_pillar.key': '_parent'
             'hierarchy_pillar.data_key': '_data'
+            'hierarchy_pillar.neighbour_key': '_neighbours'
             'hierarchy_pillar.data_path': '/srv/salt/pillar'
     ```
 
@@ -85,6 +86,38 @@ And create an empty pillar/hostmap.sls
     hostname: myhost
     zonename: myzone
     john: doe
+    ```
+4. Optional add more pillar files (resolved with their _data and _parent keys) in a key according to their name with tag '_neighbours'. This must be a list of filenames. Example:
+
+    /srv/salt/pillar/hosts/myhost.yaml:
+    ```
+    _parent: myzone
+    _neighbours:
+      - myhost2
+    hostname: myhost
+    ```
+
+    /srv/salt/pillar/zones/myzone.yaml:
+    ```
+    zonename: myzone
+    ```
+
+    /srv/salt/pillar/hosts/myhost2.yaml:
+    ```
+    _parent: myzone
+    hostname: myhost
+    ```
+
+    Output from command "salt 'myhost' pillar.items":
+
+    ```
+    _neighbours:
+      - myhost2
+    hostname: myhost
+    zonename: myzone
+    myhost2:
+      hostname: myhost2
+      zonename: myzone
     ```
 
 
