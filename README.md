@@ -24,8 +24,7 @@ or change defaults:
     ```
     ext_pillar:
         - hierarchy_pillar:
-            'hierarchy_pillar.key': '_parent'
-            'hierarchy_pillar.data_key': '_data'
+            'hierarchy_pillar.keys': ['_merge', '_parent', '_data']
             'hierarchy_pillar.neighbour_key': '_neighbours'
             'hierarchy_pillar.data_path': '/srv/salt/pillar'
     ```
@@ -40,11 +39,11 @@ or change defaults:
     ```
 And create an empty pillar/hostmap.sls
 
-2. Put your pillar data in yaml files under `/srv/salt/pillar` or your configured path (See installation 3.). The pillar files can exist in any number of subdirectories, hierarchy_pillar will find it. The first pillar which is loaded is the pillar file with name `<minion_id>.yaml`. In it the parent pillar file has to be referenced in keyword `_parent`. Example:
+2. Put your pillar data in yaml files under `/srv/salt/pillar` or your configured path (See installation 3.). The pillar files can exist in any number of subdirectories, hierarchy_pillar will find it. The first pillar which is loaded is the pillar file with name `<minion_id>.yaml`. In it the pillar files to be merged in must be referenced in a keyword given in hierarchy_pillar.keys, e.g. `_merge`. Example:
 
     /srv/salt/pillar/hosts/myhost.yaml:
     ```
-    _parent: myzone
+    _merge: myzone
     hostname: myhost
     ```
 
@@ -60,12 +59,12 @@ And create an empty pillar/hostmap.sls
     zonename: myzone
     ```
 
-3. Optional merge in more pillar files with tag '_data'. This must be a list of filenames. Example:
+3. Optional merge in more pillar files (resolved with their merge keys). This must be a list of filenames. Example:
 
     /srv/salt/pillar/hosts/myhost.yaml:
     ```
-    _parent: myzone
-    _data:
+    _merge: 
+      - myzone
       - test
     hostname: myhost
     ```
@@ -87,11 +86,11 @@ And create an empty pillar/hostmap.sls
     zonename: myzone
     john: doe
     ```
-4. Optional add more pillar files (resolved with their _data and _parent keys) in a key according to their name with tag '_neighbours'. This must be a list of filenames. Example:
+4. Optional add more pillar files (resolved with their merge keys) in a key according to their name with tag '_neighbours'. This must be a list of filenames. Example:
 
     /srv/salt/pillar/hosts/myhost.yaml:
     ```
-    _parent: myzone
+    _merge: myzone
     _neighbours:
       - myhost2
     hostname: myhost
@@ -104,7 +103,7 @@ And create an empty pillar/hostmap.sls
 
     /srv/salt/pillar/hosts/myhost2.yaml:
     ```
-    _parent: myzone
+    _merge: myzone
     hostname: myhost
     ```
 
@@ -125,7 +124,7 @@ And create an empty pillar/hostmap.sls
 
 ### Merge order
 
-1. Pillar hierarchy for given `minion_id` is built bottom (host data) up (e.g. zone data) according to given `_parent` keys (or whatever is defined manually). Values in lower levels always takes precedence.
+1. Pillar hierarchy for given `minion_id` is built bottom (host data) up (e.g. zone data) according to given `_merge` keys (or whatever is defined manually). Existing values takes precedence. If '_merge' key is a list then it will processed FIFO (first in first out, meaning items at beginning of list take precedence over items at the end of the list.
 
 2. Pillar data from earlier running pillar modules is merged in (Pillar hierarchy from 1 takes precedence).
 

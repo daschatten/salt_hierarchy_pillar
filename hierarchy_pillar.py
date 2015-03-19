@@ -14,29 +14,17 @@ log = logging.getLogger(__name__)
 
 # Define defaults
 __opts__ = { 
-    'hierarchy_pillar.key': '_parent',
-    'hierarchy_pillar.data_key': '_data',
+    'hierarchy_pillar.keys': ['_merge', '_parent', '_data'],
     'hierarchy_pillar.neighbour_key': '_neighbours',
     'hierarchy_pillar.data_path': '/srv/salt/pillar',
 }
 
 # Argument data does nothing, just needs to be there
 def ext_pillar(id, pillar, data):
-    # First, build pillar hierarchy starting with host pillar for id
+    # Process pillar and merge in all pillar files given in hierarchy_pillar.keys
     result = build_pillar(id)
 
-    # Second, include other given pillars (can also have _data and _neighbour keys) in key <name>.
-    if __opts__['hierarchy_pillar.neighbour_key'] in result:
-        log.debug('get_parent: neighbour exists')
-
-        for filename in result[__opts__['hierarchy_pillar.neighbour_key']]:
-            # check if we have a recursion problem
-            if filename == id:
-                next
-            result[filename] = build_pillar(filename)
-
-
-    # Third, combine generated pillar with given pillar variable
+    # Combine generated pillar with given pillar variable
     # First built pillar takes precedence
     result = combine_two(result, pillar)
 
@@ -52,39 +40,35 @@ def build_pillar(id):
         log.critical(e)
         return {}
 
-    process_data_tags(pillar_data)
+    # Find merge keys and process them
+    for key in __opts__['hierarchy_pillar.keys']:
+        if key in pillar_data:
+            pillar_data = process_merge_tag(pillar_data, key)
 
-    parent_id = get_parent(pillar_data)
+    # Include other given pillars (can also have _merge and _neighbour keys) in key <name>.
+    if __opts__['hierarchy_pillar.neighbour_key'] in pillar_data:
+        log.debug('get_parent: neighbour exists')
+        for filename in pillar_data[__opts__['hierarchy_pillar.neighbour_key']]:
+            # check if we have a recursion problem
+            if filename == id:
+                next
+            pillar_data[filename] = build_pillar(filename)
 
-    if parent_id:
-        return combine(pillar_data)
-    else:
-        return pillar_data
-
-# Searches for _data tags and their files and merges them in
-def process_data_tags(pillar_data):
-    if __opts__['hierarchy_pillar.data_key'] in pillar_data:
-        log.debug('get_parent: data exists')
-
-        for filename in pillar_data[__opts__['hierarchy_pillar.data_key']]:
-            try:
-                new_data = load_pillar(filename)
-            except Exception as e:
-                log.critical('build_pillar: load_pillar failed')
-                log.critical(e)
-            pillar_data = combine_two(pillar_data, new_data)
-    
     return pillar_data
 
-# Returns parent name from given pillar data
-def get_parent(pillar_data):
-    if __opts__['hierarchy_pillar.key'] in pillar_data:
-        log.debug('get_parent: parent exists')
-        return pillar_data[__opts__['hierarchy_pillar.key']]
-    else:
-        log.debug('get_parent: parent does not exist')
-        return None
-
+# Search for given tag in given pillar data and merges pillar file in
+def process_merge_tag(pillar_data, key):
+    if type(pillar_data[key]) is str:
+        new_data = load_pillar(pillar_data[key])
+        return combine_two(pillar_data, new_data)
+    elif type(pillar_data[key]) is list:
+        result = pillar_data
+        for name in pillar_data[key]:
+            log.critical('process_merge_tag: ' + name)
+            new_data = load_pillar(name)
+            result = combine_two(pillar_data, new_data)
+        return pillar_data    
+      
 # Loads pillar data from given filename or pillar data
 def load_pillar(pillar):
     if type(pillar) is str:
