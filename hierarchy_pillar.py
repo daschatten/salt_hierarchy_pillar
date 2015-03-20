@@ -64,7 +64,7 @@ def process_merge_tag(pillar_data, key):
     elif type(pillar_data[key]) is list:
         result = pillar_data
         for name in pillar_data[key]:
-            log.critical('process_merge_tag: ' + name)
+            log.debug('process_merge_tag: ' + name)
             new_data = load_pillar(name)
             result = combine_two(pillar_data, new_data)
         return pillar_data    
