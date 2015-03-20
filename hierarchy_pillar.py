@@ -59,13 +59,13 @@ def build_pillar(id):
 # Search for given tag in given pillar data and merges pillar file in
 def process_merge_tag(pillar_data, key):
     if type(pillar_data[key]) is str:
-        new_data = load_pillar(pillar_data[key])
+        new_data = build_pillar(pillar_data[key])
         return combine_two(pillar_data, new_data)
     elif type(pillar_data[key]) is list:
         result = pillar_data
         for name in pillar_data[key]:
             log.debug('process_merge_tag: ' + name)
-            new_data = load_pillar(name)
+            new_data = build_pillar(name)
             result = combine_two(pillar_data, new_data)
         return pillar_data    
       
