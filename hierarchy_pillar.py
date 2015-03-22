@@ -21,24 +21,28 @@ __opts__ = {
 
 # Argument data does nothing, just needs to be there
 def ext_pillar(id, pillar, data):
-    # Process pillar and merge in all pillar files given in hierarchy_pillar.keys
-    result = build_pillar(id)
 
-    # Combine generated pillar with given pillar variable
-    # First built pillar takes precedence
-    result = combine_two(result, pillar)
+    try:
+        # Process pillar and merge in all pillar files given in hierarchy_pillar.keys
+        result = build_pillar(id)
 
-    # Return result
-    return result
+        # Combine generated pillar with given pillar variable
+        # First built pillar takes precedence
+        result = combine_two(result, pillar)
+
+        # Return result
+        return result
+    except Exception as e:
+        log.exception('Ext pillar module failed: {0}'.format(e))
+        return False
+        
 
 # Builds a pillar structure starting with given pillar filename or pillar data
 def build_pillar(id):
     try:
         pillar_data = load_pillar(id)
     except Exception as e:
-        log.critical('build_pillar: load_pillar failed')
-        log.critical(e)
-        return {}
+        raise
 
     # Find merge keys and process them
     for key in __opts__['hierarchy_pillar.keys']:
@@ -80,16 +84,16 @@ def load_pillar(pillar):
 
 # Loads pillar data from a file
 def load_pillar_from_file(pillar):
-    # Get host pillar
-    filename = find_file(pillar + '.yaml', __opts__['hierarchy_pillar.data_path'])
-
-    # Open file
     try:
+        # Get host pillar
+        filename = find_file(pillar + '.yaml', __opts__['hierarchy_pillar.data_path'])
+
+        # Open file
         log.debug('Trying to open file: ' + filename)
         stream = open(filename, 'r')
     except Exception:
-        log.critical('Error opening file: ' + filename)
-        return {}    
+        log.critical('Error opening file: ' + pillar)
+        raise 
 
     # Load yaml data from file
     try:
@@ -97,7 +101,7 @@ def load_pillar_from_file(pillar):
         return host_pillar
     except Exception:
         log.critical('YAML data from file "' + filename + '" failed to parse')
-        return {}    
+        raise
 
 # Find file by filename in path hierarchy
 def find_file(name, path):
@@ -106,6 +110,7 @@ def find_file(name, path):
         if name in files:
             log.debug('Found file: ' + root + '/' + name)
             return os.path.join(root, name)
+    raise Exception("File '{0}' not found".format(name))        
 
 # Combines pillar data with parents
 def combine(pillar_data):
